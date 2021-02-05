@@ -50,6 +50,7 @@ func TestGetMapLength(t *testing.T) {
 	count := **(**int)(unsafe.Pointer(&mp))
 	t.Log(count, len(mp)) // 2 2
 
+
 	flags := **(**uint8)(unsafe.Pointer(uintptr(unsafe.Pointer(&mp)) + uintptr(16)))
 	t.Log(flags)
 }

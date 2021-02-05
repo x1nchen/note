@@ -1,0 +1,53 @@
+* golang GC
+
+** 写屏障 write barrier
+
+#+begin_src go
+package main
+
+var A WB
+var B WB
+
+type WB struct {
+	Obj *int
+}
+
+func simpleSet(c *int) {
+	A.Obj = nil
+	B.Obj = c
+	// if GC Begin
+	// Scan A
+	A.Obj = c
+	B.Obj = nil
+	// scan B
+}
+
+func main() {
+	i := 1
+	simpleSet(&i)
+}
+#+end_src
+
+go build -o main -gcflags "-N -l" main.go
+go tool objdump -s 'main\.simpleSet' -S ./main
+
+#+begin_src shell
+  B.Obj = c
+0x105c8f7        488b442410          MOVQ 0x10(SP), AX                     // 参数 C
+0x105c8fc        833d4dd7090000      CMPL $0x0, runtime.writeBarrier(SB)   // 判断写屏障是否开启
+0x105c903        7402                JE 0x105c907                          // 没有开启则直接赋值
+0x105c905        eb54                JMP 0x105c95b                         // 开启了则跳转到 0x105c95b 执行一个汇编函数，写逻辑屏障
+0x105c907        48890522e00600      MOVQ AX, main.B(SB)                   // 真正执行 B.Obj = c 指针赋值
+0x105c90e        eb00                JMP 0x105c910                         // 
+  A.Obj = c
+0x105c910        488b442410          MOVQ 0x10(SP), AX
+0x105c915        833d34d7090000      CMPL $0x0, runtime.writeBarrier(SB)
+0x105c91c        7404                JE 0x105c922
+0x105c91e        6690                NOPW
+0x105c920        eb1d                JMP 0x105c93f
+0x105c922        488905ffdf0600      MOVQ AX, main.A(SB)
+
+0x105c95b        488d3dcedf0600      LEAQ main.B(SB), DI                     
+0x105c962        e859ccffff          CALL runtime.gcWriteBarrier(SB)       // 写屏障逻辑，函数在 asm_amd64p32.s
+0x105c967        eba7                JMP 0x105c910
+#+end_src
