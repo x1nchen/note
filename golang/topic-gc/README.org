@@ -51,3 +51,16 @@ go tool objdump -s 'main\.simpleSet' -S ./main
 0x105c962        e859ccffff          CALL runtime.gcWriteBarrier(SB)       // 写屏障逻辑，函数在 asm_amd64p32.s
 0x105c967        eba7                JMP 0x105c910
 #+end_src
+
+写屏障代码原型 go 1.8
+
+#+begin_src python
+writePointer(slot, ptr):
+  shade(*slot) 
+  if current stack is grey:
+    shade(ptr)
+  *slot = ptr
+#+end_src
+
+
+
