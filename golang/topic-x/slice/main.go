@@ -11,6 +11,3 @@ func slpa(sl []int) {
 func main() {
 	slpa([]int{1,2,3})
 }
-
-
-
