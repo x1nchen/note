@@ -1,17 +1,17 @@
-package main
+package topic_strings
 
 import (
 	"fmt"
 	"strings"
 )
 
-func main() {
+func () {
 	image := "dockerhub.com/project/service"
 
 	fmt.Println(strings.SplitN(image, "/", 1))
 	fmt.Println(strings.SplitN(image, "/", 2))
-	fmt.Println(strings.Split(image, "/"))
+	fmt.Println(strings.Split(image, "/")) // [dockerhub.com project service]
 	fmt.Println(strings.SplitAfterN(image, "/", 1))
 	fmt.Println(strings.SplitAfterN(image, "/", 2))
-	fmt.Println(strings.SplitAfter(image, "/"))
+	fmt.Println(strings.SplitAfter(image, "/")) // [dockerhub.com/ project/ service]
 }
