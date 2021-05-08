@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"runtime/debug"
+	"sync"
 )
 
 type A struct{}
@@ -17,5 +18,6 @@ func main() {
 	a := &A{}
 	fmt.Printf("addr a %p\n", a)
 	fmt.Printf("addr of addr a %p\n", &a)
+	sync.WaitGroup{}
 	slpa(a)
 }
