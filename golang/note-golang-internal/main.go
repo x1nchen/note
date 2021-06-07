@@ -1,0 +1,1 @@
+package note_golang_internal
