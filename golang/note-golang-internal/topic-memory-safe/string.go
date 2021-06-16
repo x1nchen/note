@@ -2,24 +2,33 @@ package main
 
 import (
 	"fmt"
+	"time"
+)
+
+const (
+	FIRST  = "hello world"
+	SECOND = "abcde"
 )
 
 func main() {
-	m := make(map[int]int)
+	m := ""
 	go func() {
-		var i int = 0
+		var i int = 1
 		for {
 			i = 1 - i
-			m[i] = i
+			if i == 0 {
+				m = FIRST
+			} else {
+				m = SECOND
+			}
+			time.Sleep(10)
 		}
 	}()
-	var j int = 0
 	for {
-
-		for {
-			j = 1 - j
-			x := m[j]
-			fmt.Println(x)
+		if m == "hello" {
+			panic(m)
 		}
+		fmt.Println(m)
+		time.Sleep(10)
 	}
 }
