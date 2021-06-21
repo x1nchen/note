@@ -1,7 +1,7 @@
 package main
 
 func main() {
-	var c chan int
-
-	<-c
+	var m map[int]int
+	m[1] = 1
 }
+

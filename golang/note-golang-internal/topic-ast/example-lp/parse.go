@@ -1,11 +1,11 @@
 package main
 
 import (
-"fmt"
-"go/ast"
-"go/parser"
-"go/token"
-"strings"
+	"fmt"
+	"go/ast"
+	"go/parser"
+	"go/token"
+	"strings"
 )
 
 var codeTemplate = `
