@@ -17,7 +17,11 @@ impl Config {
 
         let case_sensitive = env::var("CASE_INCENSITIVE").is_err();
 
-        Ok(Config { query, filename, case_sensitive})
+        Ok(Config {
+            query,
+            filename,
+            case_sensitive,
+        })
     }
 }
 
@@ -31,7 +35,7 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
     };
 
     for line in results {
-        println!("{}", line)       
+        println!("{}", line)
     }
 
     Ok(())
@@ -49,7 +53,7 @@ pub fn search<'a>(query: &str, contents: &'a str) -> Vec<&'a str> {
     results
 }
 
-pub fn search_case_insensitive<'a> (query: &str, contents: &'a str) -> Vec<&'a str> {
+pub fn search_case_insensitive<'a>(query: &str, contents: &'a str) -> Vec<&'a str> {
     let query = query.to_lowercase();
     let mut results = Vec::new();
 
@@ -86,7 +90,9 @@ safe, fast, productive.
 Pick three.
 Trust me.";
 
-        assert_eq!(vec!["Rust:", "Trust me."], search_case_insensitive(query, content));
+        assert_eq!(
+            vec!["Rust:", "Trust me."],
+            search_case_insensitive(query, content)
+        );
     }
-
 }
