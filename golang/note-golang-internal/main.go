@@ -6,8 +6,6 @@ import (
 	"math/rand"
 	"sync"
 	"time"
-
-	"github.com/google/gops/agent"
 )
 
 var mu sync.RWMutex
@@ -32,10 +30,6 @@ func PanicFunc() {
 }
 
 func main() {
-	if err := agent.Listen(agent.Options{}); err != nil {
-		log.Fatal(err)
-	}
-
 	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
 	defer cancel()
 	wg.Add(11)
