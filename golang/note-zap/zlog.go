@@ -134,7 +134,7 @@ var (
 	AddCallerSkip = zap.AddCallerSkip
 )
 
-func newZapLog(writer io.Writer, level Level, opts ...Option) *Logger {
+func newZapLogger(writer io.Writer, level Level, opts ...Option) *Logger {
 	if writer == nil {
 		panic("the writer is nil")
 	}
@@ -168,7 +168,15 @@ func getGeneralLogWriter(filename string) zapcore.WriteSyncer {
 	return f
 }
 
-func InitLogger() {
-	writer := newLumberLogWriter(fileName, maxSize, maxBackup, maxAge)
-	xlogger = newZapLog(writer, level, AddStacktrace(DPanicLevel), AddCallerSkip(1), WithCaller(true))
+func NewLoggerWithOption(filename string, level Level, zapOptions ...Option) *Logger {
+	return newZapLogger(getGeneralLogWriter(filename), level, zapOptions...)
+}
+
+// NewLogger creates a new Logger with best practice logger
+func NewLogger(filename string, level Level) *Logger {
+	lumberjackWriter := newLumberLogWriter(filename)
+	return newZapLogger(lumberjackWriter, level,
+		AddStacktrace(DPanicLevel),
+		AddCallerSkip(2),
+		WithCaller(true))
 }
