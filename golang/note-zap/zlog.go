@@ -3,7 +3,6 @@ package logx
 import (
 	"io"
 	"os"
-	"time"
 
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -75,30 +74,46 @@ const (
 
 type Field = zap.Field
 
-func (l *Logger) Debug(msg string, fields ...Field) {
-	l.l.Debug(msg, fields...)
+func (l *Logger) With(fields ...Field) *Logger {
+	logger := &Logger{
+		zapLogger: l.zapLogger.With(fields...),
+	}
+	logger.sugarLogger = logger.zapLogger.Sugar()
+	return logger
+}
+
+func (l *Logger) Named(name string) *Logger {
+	logger := &Logger{
+		zapLogger: l.zapLogger.Named(name),
+	}
+	logger.sugarLogger = logger.zapLogger.Sugar()
+	return logger
 }
 
 func (l *Logger) Info(msg string, fields ...Field) {
-	l.l.Info(msg, fields...)
+	l.zapLogger.Info(msg, fields...)
+}
+
+func (l *Logger) Debug(msg string, fields ...Field) {
+	l.zapLogger.Debug(msg, fields...)
 }
 
 func (l *Logger) Warn(msg string, fields ...Field) {
-	l.l.Warn(msg, fields...)
+	l.zapLogger.Warn(msg, fields...)
 }
 
 func (l *Logger) Error(msg string, fields ...Field) {
-	l.l.Error(msg, fields...)
+	l.zapLogger.Error(msg, fields...)
 }
 
 func (l *Logger) DPanic(msg string, fields ...Field) {
-	l.l.DPanic(msg, fields...)
+	l.zapLogger.DPanic(msg, fields...)
 }
 func (l *Logger) Panic(msg string, fields ...Field) {
-	l.l.Panic(msg, fields...)
+	l.zapLogger.Panic(msg, fields...)
 }
 func (l *Logger) Fatal(msg string, fields ...Field) {
-	l.l.Fatal(msg, fields...)
+	l.zapLogger.Fatal(msg, fields...)
 }
 
 // Debugf uses fmt.Sprintf to log a templated message.
@@ -122,7 +137,7 @@ func (l *Logger) Errorf(template string, args ...interface{}) {
 }
 
 type Logger struct {
-	l           *zap.Logger
+	zapLogger   *zap.Logger
 	sugarLogger *zap.SugaredLogger
 }
 
@@ -140,9 +155,12 @@ func newZapLogger(writer io.Writer, level Level, opts ...Option) *Logger {
 	}
 
 	cfg := zap.NewProductionConfig()
-	cfg.EncoderConfig.EncodeTime = func(t time.Time, enc zapcore.PrimitiveArrayEncoder) {
-		enc.AppendString(t.Format("2006-01-02 15:04:05.000"))
-	}
+
+	// cfg.EncoderConfig.EncodeTime = func(t time.Time, enc zapcore.PrimitiveArrayEncoder) {
+	// 	enc.AppendString(t.Format("2006-01-02 15:04:05.000"))
+	// }
+
+	cfg.EncoderConfig.EncodeTime = zapcore.ISO8601TimeEncoder
 	cfg.EncoderConfig.EncodeLevel = zapcore.CapitalLevelEncoder
 
 	core := zapcore.NewCore(
@@ -152,15 +170,15 @@ func newZapLogger(writer io.Writer, level Level, opts ...Option) *Logger {
 	)
 
 	logger := &Logger{
-		l: zap.New(core, opts...),
+		zapLogger: zap.New(core, opts...),
 	}
-	logger.sugarLogger = logger.l.Sugar()
+	logger.sugarLogger = logger.zapLogger.Sugar()
 
 	return logger
 }
 
 func (l *Logger) Sync() error {
-	return l.l.Sync()
+	return l.zapLogger.Sync()
 }
 
 func getGeneralLogWriter(filename string) zapcore.WriteSyncer {
@@ -169,14 +187,14 @@ func getGeneralLogWriter(filename string) zapcore.WriteSyncer {
 }
 
 func NewLoggerWithOption(filename string, level Level, zapOptions ...Option) *Logger {
-	return newZapLogger(getGeneralLogWriter(filename), level, zapOptions...)
+	lumberjackWriter := newLumberLogWriter(filename)
+	return newZapLogger(lumberjackWriter, level, zapOptions...)
 }
 
 // NewLogger creates a new Logger with best practice logger
 func NewLogger(filename string, level Level) *Logger {
-	lumberjackWriter := newLumberLogWriter(filename)
-	return newZapLogger(lumberjackWriter, level,
+	return NewLoggerWithOption(filename, level,
 		AddStacktrace(DPanicLevel),
-		AddCallerSkip(2),
+		AddCallerSkip(1),
 		WithCaller(true))
 }
